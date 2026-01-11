@@ -1,0 +1,184 @@
+{
+    "name": "Customer Support Workflow",
+    "description": "AI workflow for handling customer inquiries with context isolation",
+    "nodes": [
+        {
+            "id": "start_1",
+            "type": "start",
+            "name": "Start",
+            "position": {
+                "x": 250,
+                "y": 50
+            },
+            "context": {},
+            "tools": {},
+            "config": {},
+            "next_nodes": [
+                "gather_1"
+            ]
+        },
+        {
+            "id": "gather_1",
+            "type": "gather",
+            "name": "Get Customer Intent",
+            "position": {
+                "x": 250,
+                "y": 150
+            },
+            "context": {
+                "include_fields": [],
+                "include_messages": false
+            },
+            "tools": {},
+            "config": {
+                "field_name": "intent",
+                "response": "How can I help you today?"
+            },
+            "next_nodes": [
+                "condition_1"
+            ]
+        },
+        {
+            "id": "condition_1",
+            "type": "condition",
+            "name": "Route by Intent",
+            "position": {
+                "x": 250,
+                "y": 250
+            },
+            "context": {
+                "include_fields": [
+                    "intent"
+                ]
+            },
+            "tools": {},
+            "config": {},
+            "branches": [
+                {
+                    "condition": "intent contains sales",
+                    "target_node": "sales_agent"
+                },
+                {
+                    "condition": "intent contains support",
+                    "target_node": "support_agent"
+                }
+            ],
+            "default_next": "support_agent",
+            "next_nodes": []
+        },
+        {
+            "id": "sales_agent",
+            "type": "llm",
+            "name": "Sales Agent",
+            "position": {
+                "x": 100,
+                "y": 400
+            },
+            "context": {
+                "include_fields": [
+                    "intent",
+                    "customer_name"
+                ],
+                "include_messages": true,
+                "max_messages": 3,
+                "custom_prompt": "You are a helpful sales agent. Help the customer with product inquiries and pricing. Be concise and professional."
+            },
+            "tools": {
+                "available_tools": [
+                    "http_request",
+                    "calendar_check"
+                ],
+                "auto_execute": false,
+                "max_tool_calls": 2
+            },
+            "config": {},
+            "next_nodes": [
+                "end_1"
+            ]
+        },
+        {
+            "id": "support_agent",
+            "type": "llm",
+            "name": "Support Agent",
+            "position": {
+                "x": 400,
+                "y": 400
+            },
+            "context": {
+                "include_fields": [
+                    "intent",
+                    "customer_email"
+                ],
+                "include_messages": true,
+                "max_messages": 5,
+                "custom_prompt": "You are a helpful customer support agent. Assist the customer with their issue. Be empathetic and solution-oriented."
+            },
+            "tools": {
+                "available_tools": [
+                    "database_query",
+                    "send_email"
+                ],
+                "auto_execute": true,
+                "max_tool_calls": 3
+            },
+            "config": {},
+            "next_nodes": [
+                "end_1"
+            ]
+        },
+        {
+            "id": "end_1",
+            "type": "end",
+            "name": "End",
+            "position": {
+                "x": 250,
+                "y": 550
+            },
+            "context": {},
+            "tools": {},
+            "config": {},
+            "next_nodes": []
+        }
+    ],
+    "edges": [
+        {
+            "id": "e1",
+            "source": "start_1",
+            "target": "gather_1"
+        },
+        {
+            "id": "e2",
+            "source": "gather_1",
+            "target": "condition_1"
+        },
+        {
+            "id": "e3",
+            "source": "condition_1",
+            "target": "sales_agent",
+            "label": "sales"
+        },
+        {
+            "id": "e4",
+            "source": "condition_1",
+            "target": "support_agent",
+            "label": "support"
+        },
+        {
+            "id": "e5",
+            "source": "sales_agent",
+            "target": "end_1"
+        },
+        {
+            "id": "e6",
+            "source": "support_agent",
+            "target": "end_1"
+        }
+    ],
+    "global_context": {
+        "company_name": "Acme Inc",
+        "support_hours": "9am-5pm EST"
+    },
+    "global_tools": [
+        "knowledge_search"
+    ]
+}
